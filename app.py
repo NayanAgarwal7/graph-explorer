@@ -97,6 +97,50 @@ def add_edge():
     graph["edges"].append(edge)
     return jsonify(edge), 201
 
+@app.route("/api/node/<int:node_id>", methods=["DELETE"])
+def delete_node(node_id):
+    node = find_node(node_id)
 
+    if node is None:
+        return jsonify({"error": "Node not found"}), 404
+
+    graph["nodes"] = [current_node for current_node in graph["nodes"] if current_node["id"] != node_id]
+    graph["edges"] = [
+        edge for edge in graph["edges"]
+        if edge["source"] != node_id and edge["target"] != node_id
+    ]
+
+    return jsonify({"ok": True})
+
+
+@app.route("/api/edge", methods=["DELETE"])
+def delete_edge():
+    data = request.get_json()
+
+    if data is None:
+        return jsonify({"error": "Missing JSON body"}), 400
+
+    source = data.get("source")
+    target = data.get("target")
+
+    if source is None or target is None:
+        return jsonify({"error": "source and target are required"}), 400
+
+    original_count = len(graph["edges"])
+
+    graph["edges"] = [
+        edge for edge in graph["edges"]
+        if not (
+            (edge["source"] == source and edge["target"] == target) or
+            (edge["source"] == target and edge["target"] == source)
+        )
+    ]
+
+    if len(graph["edges"]) == original_count:
+        return jsonify({"error": "Edge not found"}), 404
+
+    return jsonify({"ok": True})
+
+   
 if __name__ == "__main__":
     app.run(debug=True)

@@ -163,6 +163,136 @@ function getNodeAtPosition(x, y) {
     return null;
 }
 
+
+function deleteNode(nodeId) {
+    fetch(`/api/node/${nodeId}`, {
+        method: "DELETE"
+    })
+        .then(function (response) {
+            return response.json().then(function (data) {
+                return {
+                    ok: response.ok,
+                    data: data
+                };
+            });
+        })
+        .then(function (result) {
+            if (!result.ok) {
+                throw new Error(result.data.error || "Failed to delete node");
+            }
+
+            graphState.nodes = graphState.nodes.filter(function (node) {
+                return node.id !== nodeId;
+            });
+
+            graphState.edges = graphState.edges.filter(function (edge) {
+                return edge.source !== nodeId && edge.target !== nodeId;
+            });
+
+            if (selectedNode && selectedNode.id === nodeId) {
+                selectedNode = null;
+            }
+
+            redrawGraph();
+        })
+        .catch(function (error) {
+            console.error("Error deleting node:", error);
+            alert(error.message);
+        });
+}
+
+
+function distanceToSegment(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+    if (dx === 0 && dy === 0) {
+        return Math.hypot(px - x1, py - y1);
+    }
+
+    const t = ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy);
+    const clampedT = Math.max(0, Math.min(1, t));
+
+    const closestX = x1 + clampedT * dx;
+    const closestY = y1 + clampedT * dy;
+
+    return Math.hypot(px - closestX, py - closestY);
+}
+
+
+function getEdgeAtPosition(x, y) {
+    const EDGE_HITBOX = 8;
+
+    for (const edge of graphState.edges) {
+        const sourceNode = graphState.nodes.find(function (node) {
+            return node.id === edge.source;
+        });
+
+        const targetNode = graphState.nodes.find(function (node) {
+            return node.id === edge.target;
+        });
+
+        if (!sourceNode || !targetNode) {
+            continue;
+        }
+
+        const distance = distanceToSegment(
+            x,
+            y,
+            sourceNode.x,
+            sourceNode.y,
+            targetNode.x,
+            targetNode.y
+        );
+
+        if (distance <= EDGE_HITBOX) {
+            return edge;
+        }
+    }
+
+    return null;
+}
+
+
+function deleteEdge(sourceId, targetId) {
+    fetch("/api/edge", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            source: sourceId,
+            target: targetId
+        })
+    })
+        .then(function (response) {
+            return response.json().then(function (data) {
+                return {
+                    ok: response.ok,
+                    data: data
+                };
+            });
+        })
+        .then(function (result) {
+            if (!result.ok) {
+                throw new Error(result.data.error || "Failed to delete edge");
+            }
+
+            graphState.edges = graphState.edges.filter(function (edge) {
+                const sameDirection = edge.source === sourceId && edge.target === targetId;
+                const reverseDirection = edge.source === targetId && edge.target === sourceId;
+                return !(sameDirection || reverseDirection);
+            });
+
+            redrawGraph();
+        })
+        .catch(function (error) {
+            console.error("Error deleting edge:", error);
+            alert(error.message);
+        });
+}
+
+
 canvas.addEventListener("click", function (event) {
     const canvasBox = canvas.getBoundingClientRect();
     const x = Math.round(event.clientX - canvasBox.left);
@@ -207,5 +337,28 @@ canvas.addEventListener("click", function (event) {
 
     addEdge(selectedNode.id, clickedNode.id, weight);
 });
+
+
+canvas.addEventListener("contextmenu", function (event) {
+    event.preventDefault();
+
+    const canvasBox = canvas.getBoundingClientRect();
+    const x = Math.round(event.clientX - canvasBox.left);
+    const y = Math.round(event.clientY - canvasBox.top);
+
+    const clickedNode = getNodeAtPosition(x, y);
+
+    if (clickedNode) {
+        deleteNode(clickedNode.id);
+        return;
+    }
+
+    const clickedEdge = getEdgeAtPosition(x, y);
+
+    if (clickedEdge) {
+        deleteEdge(clickedEdge.source, clickedEdge.target);
+    }
+});
+
 
 loadGraph();

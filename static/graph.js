@@ -86,6 +86,7 @@ function loadGraph() {
         .then(function (graph) {
             graphState.nodes = graph.nodes || [];
             graphState.edges = graph.edges || [];
+            selectedNode = null;
             redrawGraph();
         })
         .catch(function (error) {
@@ -346,7 +347,7 @@ canvas.addEventListener("contextmenu", function (event) {
     const x = Math.round(event.clientX - canvasBox.left);
     const y = Math.round(event.clientY - canvasBox.top);
 
-    const clickedNode = getNodeAtPosition(x, y);
+    const clickedNode = getNodeAtPosition(x, y);    
 
     if (clickedNode) {
         deleteNode(clickedNode.id);

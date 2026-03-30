@@ -17,3 +17,7 @@ body {
 #sidebar {
     min-width: 220px;
 }
+
+#ds-panel p {
+    margin: 8px 0;
+}

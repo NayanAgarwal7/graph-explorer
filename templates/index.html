@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Graph Explorer</h1>
+
+    <div id="workspace">
+        <canvas id="graphCanvas" width="800" height="600"></canvas>
+
+        <div id="sidebar">
+            <h2>Data Structure</h2>
+            <div id="ds-panel">Empty</div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='graph.js') }}"></script>
+</body>
+</html>

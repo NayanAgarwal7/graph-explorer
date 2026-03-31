@@ -8,11 +8,17 @@ const graphState = {
 
 const NODE_RADIUS = 20;
 let selectedNode = null;
-
 let currentTrace = [];
 let currentStepIndex = -1;
 let currentVisitedNodeId = null;
 let visitedNodes = [];
+let animationTimer = null;
+let isPlaying = false;
+let awaitingPrediction = false;
+let predictedStep = null;
+let score = 0;
+let feedbackNodeId = null;
+let feedbackColor = null;
 
 function drawNode(node) {
     context.beginPath();
@@ -20,6 +26,8 @@ function drawNode(node) {
 
     if (node.id === currentVisitedNodeId) {
         context.fillStyle = "#27ae60";
+    } else if (node.id === feedbackNodeId && feedbackColor) {
+        context.fillStyle = feedbackColor;
     } else if (visitedNodes.includes(node.id)) {
         context.fillStyle = "#7DCEA0";
     } else {
@@ -308,6 +316,11 @@ function deleteEdge(sourceId, targetId) {
 
 
 function runAlgorithm() {
+    pauseAnimation();
+    awaitingPrediction = false;
+    predictedStep = null;
+    score = 0;
+
     const algorithm = document.getElementById("algorithmSelect").value;
     const startNodeInput = prompt("Enter start node id");
     visitedNodes = [];
@@ -369,25 +382,20 @@ function showNextStep() {
         return;
     }
 
-    currentStepIndex += 1;
-    const step = currentTrace[currentStepIndex];
+    const nextStep = currentTrace[currentStepIndex + 1];
+    const predictModeEnabled = document.getElementById("predictModeToggle").checked;
 
-    currentVisitedNodeId = step.visited;
-
-    if (!visitedNodes.includes(step.visited)) {
-        visitedNodes.push(step.visited);
+    if (predictModeEnabled && currentStepIndex >= 0) {
+        awaitingPrediction = true;
+        predictedStep = nextStep;
+        showPredictionPrompt();
+        return;
     }
 
-    redrawGraph();
-    updateAlgorithmOutput(step.explanation);
-    updateDataStructurePanel(step.structure, step.distances);
+    currentStepIndex += 1;
+    revealStep(nextStep);
 }
 
-
-function updateAlgorithmOutput(text) {
-    const output = document.getElementById("algorithmOutput");
-    output.innerHTML = `<p class="visited-note">${text}</p>`;
-}
 
 function updateDataStructurePanel(structure, distances = null) {
     const panel = document.getElementById("ds-panel");
@@ -403,10 +411,19 @@ function updateDataStructurePanel(structure, distances = null) {
 
     if (algorithm === "bfs") {
         html += `<p><strong>Queue:</strong> ${JSON.stringify(structure)}</p>`;
+        if (structure.length > 0) {
+            html += `<p><strong>Next from Queue:</strong> ${structure[0]}</p>`;
+        }
     } else if (algorithm === "dfs") {
         html += `<p><strong>Stack:</strong> ${JSON.stringify(structure)}</p>`;
+        if (structure.length > 0) {
+            html += `<p><strong>Top of Stack:</strong> ${structure[structure.length - 1]}</p>`;
+        }
     } else if (algorithm === "dijkstra") {
         html += `<p><strong>Priority Queue:</strong> ${JSON.stringify(structure)}</p>`;
+        if (structure.length > 0) {
+            html += `<p><strong>Next Min Node:</strong> ${structure[0].node} (distance ${structure[0].distance})</p>`;
+        }
     }
 
     if (distances) {
@@ -417,12 +434,152 @@ function updateDataStructurePanel(structure, distances = null) {
 }
 
 
+function playAnimation() {
+    const predictModeEnabled = document.getElementById("predictModeToggle").checked;
+
+    if (predictModeEnabled) {
+        alert("Turn off Predict Mode to use Play.");
+        return;
+    }
+
+    if (currentTrace.length === 0) {
+        alert("Run an algorithm first");
+        return;
+    }
+
+    if (isPlaying) {
+        return;
+    }
+
+    isPlaying = true;
+
+    animationTimer = setInterval(function () {
+        if (currentStepIndex + 1 >= currentTrace.length) {
+            pauseAnimation();
+            return;
+        }
+
+        showNextStep();
+    }, 1000);
+}
+
+function pauseAnimation() {
+    isPlaying = false;
+
+    if (animationTimer !== null) {
+        clearInterval(animationTimer);
+        animationTimer = null;
+    }
+}
+
+
+function resetTraversal() {
+    pauseAnimation();
+    awaitingPrediction = false;
+    predictedStep = null;
+    score = 0;
+    currentTrace = [];
+    currentStepIndex = -1;
+    currentVisitedNodeId = null;
+    visitedNodes = [];
+    redrawGraph();
+    updateAlgorithmOutput("No algorithm run yet.");
+    updateDataStructurePanel([]);
+}
+
+
+function updateAlgorithmOutput(text) {
+    const output = document.getElementById("algorithmOutput");
+    output.innerHTML = `
+        <p class="visited-note">${text}</p>
+        <p><strong>Score:</strong> ${score}</p>
+    `;
+}
+
+function showPredictionPrompt() {
+    updateAlgorithmOutput("Predict Mode: click the node you think will be visited next.");
+}
+
+
+function revealStep(step, feedbackText = "") {
+    currentVisitedNodeId = step.visited;
+
+    if (!visitedNodes.includes(step.visited)) {
+        visitedNodes.push(step.visited);
+    }
+
+    redrawGraph();
+
+    let finalText = step.explanation;
+    if (feedbackText) {
+        finalText = `${feedbackText} ${step.explanation}`;
+    }
+
+    updateAlgorithmOutput(finalText);
+    updateDataStructurePanel(step.structure, step.distances);
+}
+
+
+function handlePrediction(clickedNode) {
+    if (!awaitingPrediction || !predictedStep) {
+        return false;
+    }
+
+    if (!clickedNode) {
+        return true;
+    }
+
+    let feedbackText = "";
+    let flashColor = "#e74c3c";
+
+    if (clickedNode.id === predictedStep.visited) {
+        score += 1;
+        feedbackText = `Correct. You chose node ${clickedNode.id}.`;
+        flashColor = "#27ae60";
+    } else {
+        feedbackText = `Wrong. You chose node ${clickedNode.id}, but the correct next node was ${predictedStep.visited}.`;
+    }
+
+    awaitingPrediction = false;
+    currentStepIndex += 1;
+
+    flashPredictionFeedback(clickedNode.id, flashColor, function () {
+        revealStep(predictedStep, feedbackText);
+        predictedStep = null;
+    });
+
+    return true;
+}
+
+
+function flashPredictionFeedback(nodeId, color, callback) {
+    feedbackNodeId = nodeId;
+    feedbackColor = color;
+    redrawGraph();
+
+    setTimeout(function () {
+        feedbackNodeId = null;
+        feedbackColor = null;
+        redrawGraph();
+
+        if (callback) {
+            callback();
+        }
+    }, 500);
+}
+
+
 canvas.addEventListener("click", function (event) {
     const canvasBox = canvas.getBoundingClientRect();
     const x = Math.round(event.clientX - canvasBox.left);
     const y = Math.round(event.clientY - canvasBox.top);
 
     const clickedNode = getNodeAtPosition(x, y);
+
+    if (awaitingPrediction) {
+        handlePrediction(clickedNode);
+        return;
+    }
 
     if (!clickedNode) {
         selectedNode = null;
@@ -487,5 +644,8 @@ canvas.addEventListener("contextmenu", function (event) {
 
 document.getElementById("runAlgorithmBtn").addEventListener("click", runAlgorithm);
 document.getElementById("nextStepBtn").addEventListener("click", showNextStep);
+document.getElementById("playBtn").addEventListener("click", playAnimation);
+document.getElementById("pauseBtn").addEventListener("click", pauseAnimation);
+document.getElementById("resetTraversalBtn").addEventListener("click", resetTraversal);
 
 loadGraph();

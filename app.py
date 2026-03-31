@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+from algorithms import bfs_trace, dfs_trace, dijkstra_trace
 
 app = Flask(__name__)
 
@@ -141,6 +142,66 @@ def delete_edge():
 
     return jsonify({"ok": True})
 
-   
+
+@app.route("/api/algorithm/bfs", methods=["POST"])
+def run_bfs():
+    data = request.get_json()
+
+    if data is None:
+        return jsonify({"error": "Missing JSON body"}), 400
+
+    start_node = data.get("start_node")
+
+    if start_node is None:
+        return jsonify({"error": "start_node is required"}), 400
+
+    result = bfs_trace(graph, start_node)
+
+    if result["error"] is not None:
+        return jsonify({"error": result["error"]}), 400
+
+    return jsonify(result)
+
+
+@app.route("/api/algorithm/dfs", methods=["POST"])
+def run_dfs():
+    data = request.get_json()
+
+    if data is None:
+        return jsonify({"error": "Missing JSON body"}), 400
+
+    start_node = data.get("start_node")
+
+    if start_node is None:
+        return jsonify({"error": "start_node is required"}), 400
+
+    result = dfs_trace(graph, start_node)
+
+    if result["error"] is not None:
+        return jsonify({"error": result["error"]}), 400
+
+    return jsonify(result)
+
+
+@app.route("/api/algorithm/dijkstra", methods=["POST"])
+def run_dijkstra():
+    data = request.get_json()
+
+    if data is None:
+        return jsonify({"error": "Missing JSON body"}), 400
+
+    start_node = data.get("start_node")
+
+    if start_node is None:
+        return jsonify({"error": "start_node is required"}), 400
+
+    result = dijkstra_trace(graph, start_node)
+
+    if result["error"] is not None:
+        return jsonify({"error": result["error"]}), 400
+
+    return jsonify(result)
+
+
 if __name__ == "__main__":
     app.run(debug=True)

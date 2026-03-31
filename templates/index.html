@@ -9,6 +9,18 @@
 <body>
     <h1>Graph Explorer</h1>
 
+    <div id="controls">
+        <label for="algorithmSelect">Algorithm:</label>
+        <select id="algorithmSelect">
+            <option value="bfs">BFS</option>
+            <option value="dfs">DFS</option>
+            <option value="dijkstra">Dijkstra</option>
+        </select>
+
+        <button id="runAlgorithmBtn">Run</button>
+        <button id="nextStepBtn">Next Step</button>
+    </div>
+
     <div id="workspace">
         <canvas id="graphCanvas" width="800" height="600"></canvas>
 
@@ -20,6 +32,11 @@
                 <p>Left click node, then another node → add edge</p>
                 <p>Right click node → delete node</p>
                 <p>Right click edge → delete edge</p>
+            </div>
+
+            <h2>Algorithm Output</h2>
+            <div id="algorithmOutput">
+                <p>No algorithm run yet.</p>
             </div>
         </div>
     </div>

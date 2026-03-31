@@ -9,10 +9,23 @@ const graphState = {
 const NODE_RADIUS = 20;
 let selectedNode = null;
 
+let currentTrace = [];
+let currentStepIndex = -1;
+let currentVisitedNodeId = null;
+let visitedNodes = [];
+
 function drawNode(node) {
     context.beginPath();
     context.arc(node.x, node.y, NODE_RADIUS, 0, Math.PI * 2);
-    context.fillStyle = "#4A90D9";
+
+    if (node.id === currentVisitedNodeId) {
+        context.fillStyle = "#27ae60";
+    } else if (visitedNodes.includes(node.id)) {
+        context.fillStyle = "#7DCEA0";
+    } else {
+        context.fillStyle = "#4A90D9";
+    }
+
     context.fill();
 
     context.lineWidth = 2;
@@ -294,6 +307,116 @@ function deleteEdge(sourceId, targetId) {
 }
 
 
+function runAlgorithm() {
+    const algorithm = document.getElementById("algorithmSelect").value;
+    const startNodeInput = prompt("Enter start node id");
+    visitedNodes = [];
+
+    if (startNodeInput === null) {
+        return;
+    }
+
+    const startNode = Number(startNodeInput);
+
+    if (!Number.isInteger(startNode) || startNode <= 0) {
+        alert("Start node must be a positive integer");
+        return;
+    }
+
+    fetch(`/api/algorithm/${algorithm}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ start_node: startNode })
+    })
+        .then(function (response) {
+            return response.json().then(function (data) {
+                return {
+                    ok: response.ok,
+                    data: data
+                };
+            });
+        })
+        .then(function (result) {
+            if (!result.ok) {
+                throw new Error(result.data.error || "Failed to run algorithm");
+            }
+
+            currentTrace = result.data.steps || [];
+            currentStepIndex = -1;
+            currentVisitedNodeId = null;
+
+            updateAlgorithmOutput("Algorithm loaded. Click Next Step.");
+            redrawGraph();
+            updateDataStructurePanel([]);
+        })
+        .catch(function (error) {
+            console.error("Error running algorithm:", error);
+            alert(error.message);
+        });
+}
+
+
+function showNextStep() {
+    if (currentTrace.length === 0) {
+        alert("Run an algorithm first");
+        return;
+    }
+
+    if (currentStepIndex + 1 >= currentTrace.length) {
+        alert("No more steps");
+        return;
+    }
+
+    currentStepIndex += 1;
+    const step = currentTrace[currentStepIndex];
+
+    currentVisitedNodeId = step.visited;
+
+    if (!visitedNodes.includes(step.visited)) {
+        visitedNodes.push(step.visited);
+    }
+
+    redrawGraph();
+    updateAlgorithmOutput(step.explanation);
+    updateDataStructurePanel(step.structure, step.distances);
+}
+
+
+function updateAlgorithmOutput(text) {
+    const output = document.getElementById("algorithmOutput");
+    output.innerHTML = `<p class="visited-note">${text}</p>`;
+}
+
+function updateDataStructurePanel(structure, distances = null) {
+    const panel = document.getElementById("ds-panel");
+    const algorithm = document.getElementById("algorithmSelect").value;
+
+    let html = `
+        <p><strong>Controls</strong></p>
+        <p>Left click empty space → add node</p>
+        <p>Left click node, then another node → add edge</p>
+        <p>Right click node → delete node</p>
+        <p>Right click edge → delete edge</p>
+    `;
+
+    if (algorithm === "bfs") {
+        html += `<p><strong>Queue:</strong> ${JSON.stringify(structure)}</p>`;
+    } else if (algorithm === "dfs") {
+        html += `<p><strong>Stack:</strong> ${JSON.stringify(structure)}</p>`;
+    } else if (algorithm === "dijkstra") {
+        html += `<p><strong>Priority Queue:</strong> ${JSON.stringify(structure)}</p>`;
+    }
+
+    if (distances) {
+        html += `<p><strong>Distances:</strong> ${JSON.stringify(distances)}</p>`;
+    }
+
+    panel.innerHTML = html;
+}
+
+
 canvas.addEventListener("click", function (event) {
     const canvasBox = canvas.getBoundingClientRect();
     const x = Math.round(event.clientX - canvasBox.left);
@@ -361,5 +484,8 @@ canvas.addEventListener("contextmenu", function (event) {
     }
 });
 
+
+document.getElementById("runAlgorithmBtn").addEventListener("click", runAlgorithm);
+document.getElementById("nextStepBtn").addEventListener("click", showNextStep);
 
 loadGraph();

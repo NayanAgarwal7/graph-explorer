@@ -21,3 +21,21 @@ body {
 #ds-panel p {
     margin: 8px 0;
 }
+
+#controls {
+    margin-bottom: 16px;
+}
+
+#controls button,
+#controls select {
+    margin-right: 10px;
+    padding: 6px 10px;
+}
+
+#algorithmOutput {
+    margin-top: 12px;
+}
+
+.visited-note {
+    margin: 8px 0;
+}

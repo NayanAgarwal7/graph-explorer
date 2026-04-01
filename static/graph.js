@@ -569,6 +569,115 @@ function flashPredictionFeedback(nodeId, color, callback) {
 }
 
 
+function saveCurrentGraph() {
+    const graphName = prompt("Enter a name for this graph");
+
+    if (graphName === null) {
+        return;
+    }
+
+    if (!graphName.trim()) {
+        alert("Graph name is required");
+        return;
+    }
+
+    fetch("/api/graph/save", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            name: graphName.trim()
+        })
+    })
+        .then(function (response) {
+            return response.json().then(function (data) {
+                return {
+                    ok: response.ok,
+                    data: data
+                };
+            });
+        })
+        .then(function (result) {
+            if (!result.ok) {
+                throw new Error(result.data.error || "Failed to save graph");
+            }
+
+            alert(result.data.message);
+        })
+        .catch(function (error) {
+            console.error("Error saving graph:", error);
+            alert(error.message);
+        });
+}
+
+
+function loadSavedGraph() {
+    fetch("/api/graphs")
+        .then(function (response) {
+            if (!response.ok) {
+                throw new Error("Failed to fetch saved graphs");
+            }
+            return response.json();
+        })
+        .then(function (graphs) {
+            if (!graphs.length) {
+                alert("No saved graphs found");
+                return;
+            }
+
+            const names = graphs.map(function (graph) {
+                return graph.name;
+            });
+
+            const chosenName = prompt(
+                `Enter graph name to load:\n\n${names.join("\n")}`
+            );
+
+            if (chosenName === null) {
+                return;
+            }
+
+            if (!chosenName.trim()) {
+                alert("Graph name is required");
+                return;
+            }
+
+            return fetch(`/api/graph/load/${encodeURIComponent(chosenName.trim())}`);
+        })
+        .then(function (response) {
+            if (!response) {
+                return null;
+            }
+
+            return response.json().then(function (data) {
+                return {
+                    ok: response.ok,
+                    data: data
+                };
+            });
+        })
+        .then(function (result) {
+            if (!result) {
+                return;
+            }
+
+            if (!result.ok) {
+                throw new Error(result.data.error || "Failed to load graph");
+            }
+
+            resetTraversal();
+            graphState.nodes = result.data.graph.nodes || [];
+            graphState.edges = result.data.graph.edges || [];
+            redrawGraph();
+        })
+        .catch(function (error) {
+            console.error("Error loading graph:", error);
+            alert(error.message);
+        });
+}
+
+
 canvas.addEventListener("click", function (event) {
     const canvasBox = canvas.getBoundingClientRect();
     const x = Math.round(event.clientX - canvasBox.left);
@@ -647,5 +756,7 @@ document.getElementById("nextStepBtn").addEventListener("click", showNextStep);
 document.getElementById("playBtn").addEventListener("click", playAnimation);
 document.getElementById("pauseBtn").addEventListener("click", pauseAnimation);
 document.getElementById("resetTraversalBtn").addEventListener("click", resetTraversal);
+document.getElementById("saveGraphBtn").addEventListener("click", saveCurrentGraph);
+document.getElementById("loadGraphBtn").addEventListener("click", loadSavedGraph);
 
 loadGraph();

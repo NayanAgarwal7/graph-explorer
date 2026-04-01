@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 from algorithms import bfs_trace, dfs_trace, dijkstra_trace
+from db import init_db, save_graph, load_graph, list_graphs
 
 app = Flask(__name__)
+init_db()
 
 graph = {
     "nodes": [],
@@ -31,6 +33,48 @@ def reset_graph():
     graph["nodes"].clear()
     graph["edges"].clear()
     return jsonify({"ok": True})
+
+
+@app.route("/api/graph/save", methods=["POST"])
+def save_current_graph():
+    data = request.get_json()
+
+    if data is None:
+        return jsonify({"error": "Missing JSON body"}), 400
+
+    name = data.get("name")
+
+    if not name or not str(name).strip():
+        return jsonify({"error": "Graph name is required"}), 400
+
+    save_graph(name.strip(), graph)
+
+    return jsonify({
+        "ok": True,
+        "message": f"Graph '{name.strip()}' saved successfully"
+    })
+
+
+@app.route("/api/graphs", methods=["GET"])
+def get_saved_graphs():
+    graphs = list_graphs()
+    return jsonify(graphs)
+
+
+@app.route("/api/graph/load/<string:name>", methods=["GET"])
+def load_saved_graph(name):
+    saved_graph = load_graph(name)
+
+    if saved_graph is None:
+        return jsonify({"error": "Graph not found"}), 404
+
+    graph["nodes"] = saved_graph.get("nodes", [])
+    graph["edges"] = saved_graph.get("edges", [])
+
+    return jsonify({
+        "ok": True,
+        "graph": graph
+    })
 
 
 @app.route("/api/node", methods=["POST"])

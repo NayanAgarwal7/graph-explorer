@@ -678,6 +678,94 @@ function loadSavedGraph() {
 }
 
 
+function loadScenario() {
+    const scenarioKey = document.getElementById("scenarioSelect").value;
+
+    if (!scenarioKey) {
+        alert("Select a scenario first");
+        return;
+    }
+
+    const scenario = presetScenarios[scenarioKey];
+
+    if (!scenario) {
+        alert("Scenario not found");
+        return;
+    }
+
+    resetTraversal();
+
+    graphState.nodes = scenario.nodes.map(function (node) {
+        return { ...node };
+    });
+
+    graphState.edges = scenario.edges.map(function (edge) {
+        return { ...edge };
+    });
+
+    selectedNode = null;
+    redrawGraph();
+}
+
+
+const presetScenarios = {
+    city_map: {
+        nodes: [
+            { id: 1, label: "Delhi", x: 180, y: 120 },
+            { id: 2, label: "Jaipur", x: 350, y: 180 },
+            { id: 3, label: "Agra", x: 380, y: 80 },
+            { id: 4, label: "Udaipur", x: 540, y: 250 },
+            { id: 5, label: "Mumbai", x: 650, y: 420 }
+        ],
+        edges: [
+            { source: 1, target: 2, weight: 280 },
+            { source: 1, target: 3, weight: 230 },
+            { source: 2, target: 4, weight: 395 },
+            { source: 4, target: 5, weight: 760 },
+            { source: 2, target: 5, weight: 1140 }
+        ]
+    },
+
+    social_network: {
+        nodes: [
+            { id: 1, label: "A", x: 240, y: 120 },
+            { id: 2, label: "B", x: 120, y: 250 },
+            { id: 3, label: "C", x: 360, y: 250 },
+            { id: 4, label: "D", x: 80, y: 420 },
+            { id: 5, label: "E", x: 210, y: 420 },
+            { id: 6, label: "F", x: 360, y: 420 },
+            { id: 7, label: "G", x: 500, y: 420 }
+        ],
+        edges: [
+            { source: 1, target: 2, weight: 1 },
+            { source: 1, target: 3, weight: 1 },
+            { source: 2, target: 4, weight: 1 },
+            { source: 2, target: 5, weight: 1 },
+            { source: 3, target: 6, weight: 1 },
+            { source: 6, target: 7, weight: 1 }
+        ]
+    },
+
+    course_prereqs: {
+        nodes: [
+            { id: 1, label: "Math", x: 150, y: 120 },
+            { id: 2, label: "Prog", x: 340, y: 120 },
+            { id: 3, label: "DSA", x: 250, y: 260 },
+            { id: 4, label: "DBMS", x: 470, y: 260 },
+            { id: 5, label: "AI", x: 250, y: 420 },
+            { id: 6, label: "Web", x: 470, y: 420 }
+        ],
+        edges: [
+            { source: 1, target: 3, weight: 1 },
+            { source: 2, target: 3, weight: 1 },
+            { source: 2, target: 4, weight: 1 },
+            { source: 3, target: 5, weight: 1 },
+            { source: 4, target: 6, weight: 1 }
+        ]
+    }
+};
+
+
 canvas.addEventListener("click", function (event) {
     const canvasBox = canvas.getBoundingClientRect();
     const x = Math.round(event.clientX - canvasBox.left);
@@ -758,5 +846,6 @@ document.getElementById("pauseBtn").addEventListener("click", pauseAnimation);
 document.getElementById("resetTraversalBtn").addEventListener("click", resetTraversal);
 document.getElementById("saveGraphBtn").addEventListener("click", saveCurrentGraph);
 document.getElementById("loadGraphBtn").addEventListener("click", loadSavedGraph);
+document.getElementById("loadScenarioBtn").addEventListener("click", loadScenario);
 
 loadGraph();

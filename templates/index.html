@@ -7,57 +7,80 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Graph Explorer</h1>
+    <div class="page">
+        <header class="hero">
+            <div>
+                <h1>Graph Explorer</h1>
+                <p class="subtitle">Interactive graph algorithms learning tool with custom graphs, demo scenarios, and Predict Mode.</p>
+            </div>
+        </header>
 
-    <div id="controls">
-        <label for="algorithmSelect">Algorithm:</label>
-        <select id="algorithmSelect">
-            <option value="bfs">BFS</option>
-            <option value="dfs">DFS</option>
-            <option value="dijkstra">Dijkstra</option>
-        </select>
+        <section id="controls" class="controls-card">
+            <div class="controls-row">
+                <div class="control-group">
+                    <label for="algorithmSelect">Algorithm</label>
+                    <select id="algorithmSelect">
+                        <option value="bfs">BFS</option>
+                        <option value="dfs">DFS</option>
+                        <option value="dijkstra">Dijkstra</option>
+                    </select>
+                </div>
 
-        <button id="runAlgorithmBtn">Run</button>
-        <button id="nextStepBtn">Next Step</button>
-        <button id="playBtn">Play</button>
-        <button id="pauseBtn">Pause</button>
-        <button id="resetTraversalBtn">Reset Traversal</button>
-        <button id="saveGraphBtn">Save Graph</button>
-        <button id="loadGraphBtn">Load Graph</button>   
-
-        <label>
-            <input type="checkbox" id="predictModeToggle">
-            Predict Mode
-        </label>
-
-        <label for="scenarioSelect">Scenario:</label>
-        <select id="scenarioSelect">
-            <option value="">Select Scenario</option>
-            <option value="city_map">City Map</option>
-            <option value="social_network">Social Network</option>
-            <option value="course_prereqs">Course Prerequisites</option>
-        </select>
-        <button id="loadScenarioBtn">Load Scenario</button>
-    </div>
-
-    <div id="workspace">
-        <canvas id="graphCanvas" width="800" height="600"></canvas>
-
-        <div id="sidebar">
-            <h2>Data Structure</h2>
-            <div id="ds-panel">
-                <p><strong>Controls</strong></p>
-                <p>Left click empty space → add node</p>
-                <p>Left click node, then another node → add edge</p>
-                <p>Right click node → delete node</p>
-                <p>Right click edge → delete edge</p>
-                <p>Predict Mode: click the node you think will be visited next</p>
+                <button id="runAlgorithmBtn">Run</button>
+                <button id="nextStepBtn">Next Step</button>
+                <button id="playBtn">Play</button>
+                <button id="pauseBtn">Pause</button>
+                <button id="resetTraversalBtn">Reset Traversal</button>
             </div>
 
-            <h2>Algorithm Output</h2>
-            <div id="algorithmOutput">
-                <p>No algorithm run yet.</p>
+            <div class="controls-row">
+                <button id="saveGraphBtn">Save Graph</button>
+                <button id="loadGraphBtn">Load Graph</button>
+
+                <div class="control-group">
+                    <label for="scenarioSelect">Scenario</label>
+                    <select id="scenarioSelect">
+                        <option value="">Select Scenario</option>
+                        <option value="city_map">City Map</option>
+                        <option value="social_network">Social Network</option>
+                        <option value="course_prereqs">Course Prerequisites</option>
+                    </select>
+                </div>
+
+                <button id="loadScenarioBtn">Load Scenario</button>
+
+                <label class="predict-toggle">
+                    <input type="checkbox" id="predictModeToggle">
+                    <span>Predict Mode</span>
+                </label>
             </div>
+        </section>
+
+        <div id="workspace">
+            <div class="canvas-card">
+                <canvas id="graphCanvas" width="800" height="600"></canvas>
+            </div>
+
+            <aside id="sidebar">
+                <section class="sidebar-card">
+                    <h2>Data Structure</h2>
+                    <div id="ds-panel">
+                        <p><strong>Controls</strong></p>
+                        <p>Left click empty space → add node</p>
+                        <p>Left click node, then another node → add edge</p>
+                        <p>Right click node → delete node</p>
+                        <p>Right click edge → delete edge</p>
+                        <p>Predict Mode: click the node you think will be visited next</p>
+                    </div>
+                </section>
+
+                <section class="sidebar-card">
+                    <h2>Algorithm Output</h2>
+                    <div id="algorithmOutput">
+                        <p>No algorithm run yet.</p>
+                    </div>
+                </section>
+            </aside>
         </div>
     </div>
 

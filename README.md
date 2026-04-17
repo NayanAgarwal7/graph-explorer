@@ -1,85 +1,98 @@
 # Graph Explorer
 
-Graph Explorer is an interactive graph algorithm learning tool built with Flask, Python, JavaScript, HTML, and CSS.
+Graph Explorer is an interactive graph algorithm learning tool built with Flask, Python, JavaScript, HTML, CSS, and SQLite.
 
 ## Tagline
 **Don't just watch algorithms run. Learn to think like them.**
 
-## Why I built it
-Many students watch BFS, DFS, and Dijkstra animations but still struggle to predict what happens next on a new graph. Passive watching does not build real intuition.
+## Overview
+Many students can follow a graph traversal animation when they watch it passively, but still struggle to predict what happens next on a new graph.
 
-Graph Explorer is designed to turn graph traversal into active learning.
+Graph Explorer was built to solve that problem through interaction.
 
-## Core idea
-Users build their own graph directly in the browser, choose an algorithm, and step through the traversal visually.
+It combines:
+- a custom graph editor
+- step-by-step algorithm animation
+- live queue / stack / priority queue display
+- Predict Mode with scoring
+- demo scenarios with meaningful real-world interpretations
 
-Instead of only showing the result, the backend returns a full step-by-step trace. The frontend uses that trace to animate the traversal, display the live data structure state, and support Predict Mode.
+## Core Features
 
-## Features
-- Add nodes by clicking on the canvas
-- Add weighted edges by selecting two nodes
+### Graph Editor
+- Add nodes by left clicking on empty canvas space
+- Add weighted edges by clicking one node and then another
 - Delete nodes with right click
 - Delete edges with right click
-- BFS traversal animation
-- DFS traversal animation
-- Dijkstra traversal animation
-- Live queue / stack / priority queue display
-- Step-by-step explanation panel
-- Play, Pause, Next Step, and Reset Traversal controls
-- Predict Mode with scoring
-- Visual red/green feedback for wrong and correct predictions
 
-## Tech stack
+### Algorithms
+Implemented from scratch:
+- Breadth-First Search (BFS)
+- Depth-First Search (DFS)
+- Dijkstra’s Algorithm
+
+### Traversal Controls
+- Run
+- Next Step
+- Play
+- Pause
+- Reset Traversal
+
+### Learning Features
+- Live queue display for BFS
+- Live stack display for DFS
+- Live priority queue and distance updates for Dijkstra
+- Plain-English explanation after every step
+- Predict Mode with score tracking
+- Green / red visual feedback for correct and wrong predictions
+
+### Demo + Sandbox Design
+Graph Explorer supports two types of use:
+
+#### 1. Demo Scenarios
+Built-in example graphs:
+- City Map
+- Social Network
+- Course Prerequisites
+
+These help users understand where graph algorithms are useful in real-world style situations.
+
+#### 2. Custom Graph Mode
+Users can build, save, load, and explore their own graphs.
+
+This makes the project both:
+- a learning demo
+- and a personal graph sandbox
+
+## Why This Project Is Useful
+Graph Explorer is designed for students who want to build actual intuition for graph algorithms, not just memorize definitions.
+
+It helps users answer questions like:
+- Which node will BFS visit next?
+- Why does DFS go deep before backtracking?
+- How does Dijkstra choose the next cheapest node?
+- How do queue, stack, and priority queue states change over time?
+
+## Tech Stack
 - Python
 - Flask
 - JavaScript
 - HTML
 - CSS
+- SQLite
 
-## Algorithms implemented
-- Breadth-First Search (BFS)
-- Depth-First Search (DFS)
-- Dijkstra's Algorithm
-
-All algorithms were implemented from scratch.
-
-## Project structure
+## Project Structure
+```text
 graphexplorer/
 ├── app.py
 ├── algorithms.py
 ├── db.py
-├── explainer.py
 ├── schema.sql
 ├── DEVLOG.md
+├── README.md
 ├── requirements.txt
 ├── static/
 │   ├── graph.js
 │   └── style.css
 └── templates/
     └── index.html
-
-## How to run
-1. Create and activate a virtual environment
-2. Install dependencies
-3. Run the Flask app
-4. Open the local server in the browser
-
-python -m venv venv
-venv\Scripts\activate
-pip install flask
-python app.py
-
-Then open: http://127.0.0.1:5000
-
-## Current status
-
-Working prototype completed:
-- Graph editor works
-- Traversal animation works
-- Predict Mode works
-
-Planned next:
-- SQLite save/load
-- Real-world graph presets
-- Improved UI polish
-- Demo video

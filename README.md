@@ -6,7 +6,7 @@ Graph Explorer is an interactive graph algorithm learning tool built with Flask,
 **Don't just watch algorithms run. Learn to think like them.**
 
 ## Video Demo: 
-https://youtu.be/3UnpI44tTy
+https://youtu.be/3UnpI44tTyo
 
 ## Overview
 Many students can follow a graph traversal animation when they watch it passively, but still struggle to predict what happens next on a new graph.
